@@ -1,42 +1,42 @@
+"""Flask app for emotion detection using Watson NLP."""
+
 from flask import Flask, render_template, request
 from EmotionDetection.emotion_detection import emotion_detector
 
-# Initiate the flask app
-app = Flask("Emotion Detector")
+# Initialize the Flask app
+app = Flask(__name__)
 
-@app.route("/")
+@app.route('/')
 def render_index_page():
-    ''' This function initiates the rendering of the main application
-        page over the Flask channel
-    '''
-    return render_template("index.html")
+    """Render the main HTML interface for the application."""
+    return render_template('index.html')
 
-@app.route("/emotionDetector")
+@app.route('/emotionDetector')
 def emo_detector():
-    ''' This code receives the text from the HTML interface and 
-        runs emotion detection over it using emotion_detector()
-        function. The output returned shows the emotion scores and 
-        the dominant emotion for the provided text.
-    '''
+    """
+    Process the text input from the user and return emotion analysis results.
 
-    # Retrieves the text to analyze from the request arguments
-    text_to_analyze = request.args.get("textToAnalyze")
+    This function retrieves the 'textToAnalyze' query parameter,
+    sends it to the emotion_detector, and returns a formatted response
+    with emotion scores and the dominant emotion.
+    """
+    text_to_analyze = request.args.get('textToAnalyze')
 
-    # Pass the text to the emotion detector function and store the response
+    if not text_to_analyze:
+        return 'Error: No text provided. Please enter some text.', 400
+
     response = emotion_detector(text_to_analyze)
 
-    # Extract the emotion scores and dominant emotions from the response
-    anger_score = response["anger"]
-    disgust_score = response["disgust"]
-    fear_score = response["fear"]
-    joy_score = response["joy"]
-    sadness_score = response["sadness"]
-    dominant_emotion = response["dominant_emotion"]
+    if response.get('dominant_emotion') is None:
+        return 'Invalid input! Try again.', 400
 
-    if dominant_emotion is None:
-        return "Invalid input! Try again."
+    return (
+        f"For the given statement, the system response is 'anger': {response['anger']}, "
+        f"'disgust': {response['disgust']}, 'fear': {response['fear']}, "
+        f"'joy': {response['joy']} and 'sadness': {response['sadness']}. "
+        f"The dominant emotion is {response['dominant_emotion']}."
+    )
 
-    return f"For the given statement, the system response is 'anger': {anger_score}, 'disgust': {disgust_score}, 'fear': {fear_score}, 'joy': {joy_score} and 'sadness': {sadness_score}. The dominant emotion is {dominant_emotion}."
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=9999)
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
